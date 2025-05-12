@@ -1,0 +1,28 @@
+1. Khởi tạo database MySQL
+- Tải MySQL trên máy tính windows (thiết lập tài khoản, mật khẩu root)
+- Vào pycharm tạo database source --> kết nối với tài khoản root đã tạo
+- Sau đó chọn chuột phải vào root@localhost --> New --> schema --> nhập tên database --> tạo database
+- Viết query
+
+2. file base.html
+- Tích hợp boostrap và làm base cho các file html khác
+
+3. flask-wtf: bảo mật biểu mẫu cho đăng kí người dùng,...
+
+4. flask-bcrypt: bâm mật khẩu
+
+5. cryptography: hỗ trợ cho MySQL để xác thực
+
+6. flask-uploads: dùng để upload ảnh
+
+7. Flask-Migrate
+- Dùng để sửa db khi cần thay đổi các cột --> tạo ra thư mục migration
+- Lệnh khởi tạo: flask --app run.py db init
+- Lệnh commit: flask --app run.py db migrate -m "Initial migration"
+- Sửa: flask --app run.py db upgrade
+
+8. Để tạo pdf ngoài thư viện pdfkit còn phải cài đặt wkhtmltopdf
+- Tải wkhtmltopdf về máy tính thông qua đường link: https://wkhtmltopdf.org/downloads.html
+- Sau khi tải về, giải nén và copy đường dẫn đến thư mục bin
+- Sau đó đưa đường dẫn vào biến môi trường PATH
+- Kiểm tra: mở cmd gõ lệnh wkhtmltopdf --version

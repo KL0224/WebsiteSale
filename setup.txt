@@ -1,0 +1,15 @@
+flask
+sqlalchemy
+pymysql
+flask-sqlalchemy
+mysql-connector-python
+flask-wtf
+flask-bcrypt
+email_validator
+cryptography
+flask-reuploads
+Flask-Migrate
+flask_msearch
+whoosh
+flask-login
+pdfkit
