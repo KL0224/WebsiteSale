@@ -21,11 +21,12 @@ def AddCart():
         product = AddProduct.query.filter_by(id=product_id).first()
 
         if product_id and quantity and colors and request.method == 'POST':
-            # Chuyển đổi quantity sang kiểu số nguyên
+            # Convert quantity to integer
             quantity = int(quantity)
 
             DictItem = {
                 product_id: {
+                    'id': product.id,
                     'name': product.name,
                     'price': product.price,
                     'quantity': quantity,
@@ -38,14 +39,13 @@ def AddCart():
 
             if 'ShopCart' in session:
                 if str(product_id) in session['ShopCart']:
-                    # Tăng số lượng nếu sản phẩm đã tồn tại
                     session.modified = True
                     session['ShopCart'][str(product_id)]['quantity'] += quantity
                 else:
-                    # Thêm sản phẩm mới vào giỏ hàng
+                    # Add a new product to the cart
                     session['ShopCart'] = MergeDict(session['ShopCart'], DictItem)
             else:
-                # Tạo giỏ hàng mới nếu chưa tồn tại
+                # Create a new cart if it doesn't exist
                 session['ShopCart'] = DictItem
 
             flash("Product added to cart successfully", 'success')

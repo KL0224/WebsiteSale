@@ -13,7 +13,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__, template_folder='templates', static_folder='static')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Pak123!!!@localhost/shopdb'
 app.config['SECRET_KEY'] = 'fkshfkhwoe8ww0590fmw050'
-app.config['UPLOADED_PHOTOS_DEST'] = os.path.join(basedir, 'static/images')
+app.config['UPLOADED_PHOTOS_DEST'] = os.path.join(basedir, 'static/images/products')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 # 16MB Limit
 
 # Cấu hình search
@@ -38,7 +38,7 @@ with app.app_context():
 
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'customer_login'
+login_manager.login_view = 'login'
 login_manager.needs_refresh_message_category = 'danger'
 login_manager.login_message = 'Please login to access this page'
 
@@ -46,3 +46,6 @@ from shop.admin import routes
 from shop.products import routes
 from shop.carts import carts
 from shop.customers import routes
+from shop.sale import routes
+from shop.warehouse import routes
+from shop.accounting import routes

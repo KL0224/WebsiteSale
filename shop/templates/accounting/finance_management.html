@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Finance Management</h2>
+                <div>
+                    <a href="{{ url_for('revenue_report') }}" class="btn btn-primary me-2">
+                        <i class="bi bi-graph-up"></i> View Reports
+                    </a>
+                    <a href="{{ url_for('export_revenue', start_date=current_year_start, end_date=current_date, report_type='monthly') }}" class="btn btn-success">
+                        <i class="bi bi-download"></i> Export CSV
+                    </a>
+                </div>
+            </div>
+
+            <!-- Current Year Revenue Chart -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Revenue Chart {{ current_year }}</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="revenueChart" height="300"></canvas>
+                </div>
+            </div>
+
+            <!-- Key Metrics Section -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card bg-light h-100">
+                        <div class="card-body text-center">
+                            <div class="mb-2">
+                                <i class="bi bi-currency-dollar text-primary" style="font-size: 2rem;"></i>
+                            </div>
+                            <h6 class="text-muted">Total Revenue ({{ current_year }})</h6>
+                            <h3 class="mb-0">{{ '${:,.2f}'.format(total_revenue) }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-light h-100">
+                        <div class="card-body text-center">
+                            <div class="mb-2">
+                                <i class="bi bi-bag-check text-success" style="font-size: 2rem;"></i>
+                            </div>
+                            <h6 class="text-muted">Total Orders ({{ current_year }})</h6>
+                            <h3 class="mb-0">{{ total_orders }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-light h-100">
+                        <div class="card-body text-center">
+                            <div class="mb-2">
+                                <i class="bi bi-receipt text-warning" style="font-size: 2rem;"></i>
+                            </div>
+                            <h6 class="text-muted">Avg Order Value</h6>
+                            <h3 class="mb-0">{{ '${:,.2f}'.format(avg_order_value) }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Finance Management Features -->
+            <h4 class="mb-3">Finance Tools</h4>
+            <div class="row">
+                <!-- Revenue Reports Card -->
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card nav-card h-100">
+                        <div class="card-body">
+                            <div class="nav-card-icon" style="background-color: rgba(59, 130, 246, 0.1); color: var(--primary-color);">
+                                <i class="bi bi-graph-up fs-4"></i>
+                            </div>
+                            <h5 class="card-title">Revenue Reports</h5>
+                            <p class="card-text">Generate and analyze revenue reports by different time periods.</p>
+                            <a href="{{ url_for('revenue_report') }}" class="btn btn-primary">View Reports</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Export Data Card -->
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card nav-card h-100">
+                        <div class="card-body">
+                            <div class="nav-card-icon" style="background-color: rgba(16, 185, 129, 0.1); color: var(--secondary-color);">
+                                <i class="bi bi-file-earmark-spreadsheet fs-4"></i>
+                            </div>
+                            <h5 class="card-title">Export Data</h5>
+                            <p class="card-text">Export financial data in various formats for further analysis.</p>
+                            <a href="{{ url_for('export_revenue', start_date=current_year_start, end_date=current_date, report_type='monthly') }}" class="btn btn-success">Export CSV</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial Overview Card -->
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card nav-card h-100">
+                        <div class="card-body">
+                            <div class="nav-card-icon" style="background-color: rgba(245, 158, 11, 0.1); color: var(--accent-color);">
+                                <i class="bi bi-cash-stack fs-4"></i>
+                            </div>
+                            <h5 class="card-title">Financial Overview</h5>
+                            <p class="card-text">View financial summaries and key performance indicators.</p>
+                            <a href="{{ url_for('revenue_report') }}?report_type=sumary" class="btn" style="background-color: var(--accent-color); color: white;">View Overview</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+
+        // Parse the monthly data from the server
+        const monthlyData = {{ monthly_data|tojson }};
+        const months = Object.keys(monthlyData);
+        const revenues = months.map(month => monthlyData[month].revenue);
+
+        // Create the chart
+        const revenueChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: months,
+                datasets: [{
+                    label: 'Monthly Revenue ({{ current_year }})',
+                    data: revenues,
+                    backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                    borderColor: 'rgb(59, 130, 246)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const month = context.label;
+                                const data = monthlyData[month];
+
+                                return [
+                                    'Revenue: $' + data.revenue.toLocaleString(),
+                                    'Orders: ' + data.count,
+                                    'Avg Order: $' + data.average.toLocaleString()
+                                ];
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
