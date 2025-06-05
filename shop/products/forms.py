@@ -12,3 +12,4 @@ class AddProducts(Form):
     image_2 = FileField('Image_2', validators=[FileAllowed(['jpg', 'png', 'gif', 'jpeg'], 'Images only!')])
     image_3 = FileField('Image_3', validators=[FileAllowed(['jpg', 'png', 'gif', 'jpeg'], 'Images only!')])
     #is_available = BooleanField('Is Available')
+

@@ -4,7 +4,8 @@ from .models import Brand, Category, AddProduct
 from .forms import AddProducts
 import secrets, os  # Băm ảnh để không trùng lặp
 from shop.models import User, Role
-
+from shop.customers.forms import ReviewForm
+from shop.customers.model import Review
 
 def brands():
     brands = Brand.query.join(AddProduct, (Brand.id == AddProduct.brand_id)).all()
@@ -28,7 +29,6 @@ def home():
     products = AddProduct.query.filter(AddProduct.stock > 0).paginate(page=page, per_page=4)
     return render_template('products/index.html', products=products, brands=brands(), categories=categories(),
                            show_admin_register=show_admin_register)
-
 
 @app.route('/result')
 def result():
@@ -55,8 +55,10 @@ def single_page(id):
     show_admin_register = not admin_exists
 
     product = AddProduct.query.get_or_404(id)
+    reviews = Review.query.filter_by(product_id=product.id).order_by(Review.created_at.desc()).all()
+    review_form = ReviewForm()
     return render_template('products/single_page.html', product=product, brands=brands(), categories=categories(),
-                           show_admin_register=show_admin_register)
+                           show_admin_register=show_admin_register, reviews=reviews, review_form=review_form)
 
 
 @app.route('/brand/<int:id>')
@@ -269,7 +271,6 @@ def updateproduct(id):
     return render_template('products/updateproduct.html', title='Update Product', form=form, brands=brands,
                            categories=categories, product=product)
 
-
 @app.route('/deleteproduct/<int:id>', methods=['POST'])
 def deleteproduct(id):
     product = AddProduct.query.get_or_404(id)
@@ -286,3 +287,4 @@ def deleteproduct(id):
         return redirect(url_for('admin'))
     flash(f'Can not delete this product {product}!', 'danger')
     return redirect(url_for('admin'))
+

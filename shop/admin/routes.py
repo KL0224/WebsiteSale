@@ -17,11 +17,6 @@ def admin():
     products = AddProduct.query.all()
     return render_template('admin/index.html', title='Admin Page', products=products)
 
-@app.route('/accounting')
-@role_required(['admin', 'accounting'])
-def accounting():
-    return render_template('admin/accounting.html', title='Accounting Dashboard')
-
 @app.route('/brands')
 @role_required(['admin', 'sale', 'storekeeper'])
 def brands():

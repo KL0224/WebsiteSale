@@ -1,5 +1,10 @@
 {% extends 'base.html' %}
 {% include 'navbar.html' %}
+{% include '_messages.html' %}
+
+{% block title %}
+    {% if title %} {{ title }} {% else %} Products {% endif %}
+{% endblock title %}
 {% block content %}
 
 <style>

@@ -1,4 +1,4 @@
-from wtforms import Form, StringField, TextAreaField, PasswordField, SubmitField, validators, ValidationError
+from wtforms import Form, StringField, TextAreaField, PasswordField, SubmitField, validators, ValidationError, IntegerField
 from flask_wtf.file import FileRequired, FileAllowed, FileField
 from flask_wtf import FlaskForm
 from shop.models import User
@@ -28,6 +28,9 @@ class CustomerRegisterForm(FlaskForm):
         if User.query.filter_by(phone=phone.data).first():
             raise ValidationError('Contact already exists! Please choose a different one.')
 
-
+class ReviewForm(FlaskForm):
+    rating = IntegerField('Rating (1-5)', [validators.DataRequired(), validators.NumberRange(min=1, max=5)])
+    comment = TextAreaField('Comment', [validators.Optional(), validators.Length(max=1000)])
+    submit = SubmitField('Submit Review')
 
 

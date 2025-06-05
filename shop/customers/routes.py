@@ -1,7 +1,7 @@
 from flask import redirect, render_template, url_for, flash, request, session, current_app, make_response
 from shop import app, db, photos, search, bcrypt
-from .forms import CustomerRegisterForm
-from .model import Customer, Order, OrderDetail
+from .forms import CustomerRegisterForm, ReviewForm
+from .model import Customer, Order, OrderDetail, Review
 from shop.models import Role, User
 import os
 import secrets
@@ -159,44 +159,43 @@ def orders(invoice):
     else:
         return redirect(url_for('login'))
 
-@app.route('/getpdf/<invoice>', methods=['POST'])
-@role_required(['customer'])
+@app.route('/get_pdf/<invoice>', methods=['GET', 'POST'])
+@role_required(['customer', 'sale', 'admin'])
 @login_required
 def get_pdf(invoice):
-    if current_user.is_authenticated:
-        customer_id = current_user.id
-        customer = Customer.query.filter_by(id=customer_id).first()
-        order = Order.query.filter_by(invoice=invoice, customer_id=customer_id).first()
-        if request.method == 'POST' and order.status == 'Hoàn thành':
-            if order:
-                rendered = render_template('customers/pdf.html',
-                                          customer=customer,
-                                          order=order,
-                                          order_details=order.order_details,
-                                          grand_total=order.grand_total,
-                                          tax=order.tax,
-                                          invoice=invoice)
-                try:
-                    options = {
-                        'enable-local-file-access': None
-                    }
-                    pdf = pdfkit.from_string(rendered, False, options=options)
-                    response = make_response(pdf)
-                    response.headers['Content-Type'] = 'application/pdf'
-                    response.headers['Content-Disposition'] = f'attached; filename={invoice}.pdf'
-                    return response
-                except OSError as e:
-                    print({'error': str(e)})
-                    flash('Lỗi khi tạo PDF. Vui lòng thử lại.', 'danger')
-                    return redirect(url_for('orders', invoice=invoice))
-            else:
-                flash('Order not found.', 'warning')
-                return redirect(url_for('home'))
-        else:
-            flash('You can only download the invoice for completed orders.', 'warning')
-            return redirect(url_for('orders', invoice=invoice))
-    return redirect(url_for('login'))
+    # Allow: customer can only get their own order, staff/admin can get any order
+    if current_user.role.name == 'customer':
+        order = Order.query.filter_by(invoice=invoice, customer_id=current_user.id).first()
+        customer = Customer.query.filter_by(id=current_user.id).first()
+    else:
+        order = Order.query.filter_by(invoice=invoice).first()
+        customer = order.customer if order else None
 
+    if not order:
+        flash('Order not found.', 'warning')
+        return redirect(url_for('home'))
+
+    if order.status == 'completed':
+        rendered = render_template('customers/pdf.html',
+                                  customer=customer,
+                                  order=order,
+                                  order_details=order.order_details,
+                                  grand_total=order.grand_total,
+                                  tax=order.tax,
+                                  invoice=invoice)
+        try:
+            options = {'enable-local-file-access': None}
+            pdf = pdfkit.from_string(rendered, False, options=options)
+            response = make_response(pdf)
+            response.headers['Content-Type'] = 'application/pdf'
+            response.headers['Content-Disposition'] = f'attached; filename={invoice}.pdf'
+            return response
+        except OSError as e:
+            flash('Lỗi khi tạo PDF. Vui lòng thử lại.', 'danger')
+            return redirect(url_for('orders', invoice=invoice))
+    else:
+        flash('You can only download the invoice for completed orders.', 'warning')
+        return redirect(url_for('orders', invoice=invoice))
 @app.route('/customer/profile')
 @role_required(['customer'])
 def customer_profile():
@@ -277,3 +276,46 @@ def history_orders():
     else:
         flash('Please login to view your order history', 'danger')
         return redirect(url_for('login'))
+
+@app.route('/product/<int:product_id>/review', methods=['POST'])
+@login_required
+@role_required(['customer'])
+def add_review(product_id):
+    if current_user.is_authenticated:
+        form = ReviewForm()
+        if form.validate_on_submit():
+            review_exist = Review.query.filter_by(customer_id=current_user.id, product_id=product_id).first()
+            if review_exist:
+                flash('Bạn đã đánh giá trước đó, hãy xóa đánh giá để tạo lại', 'danger')
+                return redirect(url_for('single_page', id=product_id))
+
+            review = Review(
+                customer_id=current_user.id,
+                product_id=product_id,
+                rating=form.rating.data,
+                comment=form.comment.data,
+            )
+
+            db.session.add(review)
+            db.session.commit()
+            flash('Cảm ơn bạn đã dánh giá sản phẩm', 'success')
+            return redirect(url_for('single_page', id=product_id))
+        else:
+            flash('Nội dung bạn nhập chưa hợp lệ', 'danger')
+            return redirect(url_for('single_page', id=product_id))
+    else:
+        flash('Hãy đăng nhập để đánh giá sản phẩm', 'danger')
+        return redirect(url_for('single_page', id=product_id))
+
+@app.route('/review/<int:review_id>/delete', methods=['GET', 'POST'])
+@login_required
+@role_required(['customer'])
+def delete_review(review_id):
+    review = Review.query.get_or_404(review_id)
+    if review.customer_id != current_user.id:
+        flash('Bạn không thể xóa đánh giá không phải của bạn', 'danger')
+        return redirect(url_for('single_page', id=review.product_id))
+    db.session.delete(review)
+    db.session.commit()
+    flash('Bạn đã xóa đánh giá thành công', 'success')
+    return redirect(url_for('single_page', id=review.product_id))

@@ -1,7 +1,5 @@
 from shop import db
 from datetime import datetime
-from shop.models import User
-from shop.products.models import AddProduct
 
 # Warehouse model
 class Warehouse(db.Model):

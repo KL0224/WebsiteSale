@@ -1,7 +1,12 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container">
-    <h2 class="mt-4 mb-4">Order Detail</h2>
+    <div class="d-flex justify-content-between align-items-center mt-4 mb-4">
+        <h2>Order Detail</h2>
+        <a href="{{ url_for('get_pdf', invoice=invoice) }}" class="btn btn-primary">
+            Export Invoice
+        </a>
+    </div>
     <div class="card mb-4">
         <div class="card-body">
             <h5 class="card-title">Invoice: {{ order.invoice }}</h5>

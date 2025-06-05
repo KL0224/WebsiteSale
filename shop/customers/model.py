@@ -70,15 +70,15 @@ class OrderDetail(db.Model):
 class Review(db.Model):
     __tablename__ = 'reviews'
     id = db.Column(db.Integer, primary_key=True)
-    customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'), nullable=False)
-    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    customer_id = db.Column(db.Integer, db.ForeignKey('customers.id', ondelete='CASCADE'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id', ondelete='CASCADE'), nullable=False)
     rating = db.Column(db.Integer, nullable=False)  # Điểm đánh giá (1-5 sao)
     comment = db.Column(db.Text, nullable=True)  # Bình luận
     created_at = db.Column(db.DateTime, default=datetime.now, nullable= False)
 
     # Quan hệ với các bảng khác
-    customer = db.relationship('Customer', backref=db.backref('reviews', lazy=True))
-    product = db.relationship('AddProduct', backref=db.backref('reviews', lazy=True))
+    customer = db.relationship('Customer', backref=db.backref('reviews', lazy=True, cascade="all, delete-orphan"))
+    product = db.relationship('AddProduct', backref=db.backref('reviews', lazy=True, cascade="all, delete-orphan"))
 
     def __repr__(self):
         return f'<Review {self.id}: {self.rating} stars>'
